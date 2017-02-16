@@ -1,0 +1,7 @@
+---
+
+- name: Build AWS Foundation
+  hosts: "{{ hosts }}"
+
+  roles:
+    role: ansible-city.aws-foundation

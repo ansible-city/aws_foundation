@@ -1,0 +1,15 @@
+---
+
+- name: Ensure NAT Multi AZ
+  cloudformation:
+    stack_name: "{{ env }}-nat"
+    state: "{{ aws_foundation.nat.state }}"
+    template: "{{ role_path }}/files/nat_multi_az.yml"
+    template_parameters:
+      Environment: "{{ env }}"
+    tags:
+      environment: "{{ env }}"
+      role: "nat"
+      Description: "NAT gateway stack"
+      Name: "{{ env }}-nat"
+  register: nat_data

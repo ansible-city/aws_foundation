@@ -1,0 +1,144 @@
+---
+
+Description: NAT setup
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Description: Environment name
+    Type: String
+
+Resources:
+
+  ##
+  # NAT for private subnet A
+  NatEipA:
+    Type: AWS::EC2::EIP
+
+  NatA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - NatEipA
+          - AllocationId
+      SubnetId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-SubnetPublicA"
+
+  NatARouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatA
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-RouteTablePrivateA"
+
+  ##
+  # NAT for private subnet B
+  NatEipB:
+    Type: AWS::EC2::EIP
+
+  NatB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - NatEipB
+          - AllocationId
+      SubnetId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-SubnetPublicB"
+
+  NatBRouteB:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatB
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-RouteTablePrivateB"
+
+  ##
+  # NAT for private subnet C
+  NatEipC:
+    Type: AWS::EC2::EIP
+
+  NatC:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - NatEipC
+          - AllocationId
+      SubnetId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-SubnetPublicC"
+
+  NatCRouteC:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatC
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-RouteTablePrivateC"
+
+Outputs:
+  NatEipA:
+    Description: Nat EIP A
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-NatEipA"
+    Value:
+      Ref: NatEipA
+
+  NatEipAllocationIdA:
+    Description: Nat EIP Allocation Id A
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-NatEipAllocationIdA"
+    Value:
+      Fn::GetAtt:
+        - NatEipA
+        - AllocationId
+
+  NatEipB:
+    Description: Nat EIP B
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-NatEipB"
+    Value:
+      Ref: NatEipB
+
+  NatEipAllocationIdB:
+    Description: Nat EIP Allocation Id B
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-NatEipAllocationIdB"
+    Value:
+      Fn::GetAtt:
+        - NatEipB
+        - AllocationId
+
+  NatEipC:
+    Description: Nat EIP C
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-NatEipC"
+    Value:
+      Ref: NatEipC
+
+  NatEipAllocationIdC:
+    Description: Nat EIP Allocation Id C
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-NatEipAllocationIdC"
+    Value:
+      Fn::GetAtt:
+        - NatEipC
+        - AllocationId

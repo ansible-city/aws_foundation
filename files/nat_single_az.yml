@@ -1,0 +1,55 @@
+---
+
+Description: NAT setup
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Description: Environment name
+    Type: String
+
+Resources:
+
+  NatEip:
+    Type: AWS::EC2::EIP
+
+  Nat:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - NatEip
+          - AllocationId
+      SubnetId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-SubnetPublicA"
+
+  NatRouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: Nat
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-RouteTablePrivateA"
+
+  NatRouteB:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: Nat
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-RouteTablePrivateB"
+
+  NatRouteC:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: Nat
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-vpc-RouteTablePrivateC"

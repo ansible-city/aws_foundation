@@ -1,0 +1,20 @@
+---
+
+- name: Role config
+  debug:
+    var: aws_foundation
+    verbosity: 2
+
+- name: VPC
+  include: vpc.yml
+  when: "'vpc' in aws_foundation.stacks"
+
+- name: Single AZ Nat
+  include: nat_single_az.yml
+  when: "'nat' in aws_foundation.stacks and
+    aws_foundation.nat.availability_zones == 'single'"
+
+- name: Multi AZ Nat
+  include: nat_multi_az.yml
+  when: "'nat' in aws_foundation.stacks and
+    aws_foundation.nat.availability_zones == 'multi'"

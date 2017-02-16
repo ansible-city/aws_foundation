@@ -1,0 +1,27 @@
+---
+
+aws_foundation:
+  stacks:
+    - vpc
+    - nat
+
+  nat:
+    state: present
+    availability_zones: multi
+
+  vpc:
+    availability_zones:
+      - eu-west-1a
+      - eu-west-1b
+      - eu-west-1c
+    cidr: 10.1.0.0/16
+    region: eu-west-1
+    state: present
+    subnets_private:
+      - 10.1.11.0/24
+      - 10.1.12.0/24
+      - 10.1.13.0/24
+    subnets_public:
+      - 10.1.1.0/24
+      - 10.1.2.0/24
+      - 10.1.3.0/24
