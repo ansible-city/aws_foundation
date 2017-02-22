@@ -1,0 +1,38 @@
+---
+
+Description: Public DNS
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Environment:
+    Description: Environment name
+    Type: String
+  PublicFQDN:
+    Description: Public Fully Qualified Domain Name
+    Type: String
+
+Resources:
+  PublicDns:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      HostedZoneConfig:
+        Comment:
+          Fn::Sub: "${Environment} Public DNS"
+      Name:
+        Ref: PublicFQDN
+
+Outputs:
+  ZoneId:
+    Description: Zone ID
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-ZoneId"
+    Value:
+      Ref: PublicDns
+  FQDN:
+    Description: Fully Qualified Domain Name
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-FQDN"
+    Value:
+      Ref: PublicFQDN

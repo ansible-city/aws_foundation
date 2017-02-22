@@ -39,11 +39,7 @@ Resources:
     Properties:
       HostedZoneConfig:
         Comment:
-          Fn::Join:
-            - " "
-            -
-              - Ref: Environment
-              - VPC Internal DNS
+          Fn::Sub: "${Environment} VPC Internal DNS"
       Name: internal
       VPCs:
         - VPCId:
@@ -68,11 +64,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - public-a
+            Fn::Sub: "${Environment}-public-a"
 
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
@@ -90,11 +82,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - private-a
+            Fn::Sub: "${Environment}-private-a"
 
   SubnetPublicB:
     Type: AWS::EC2::Subnet
@@ -113,11 +101,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - public-b
+            Fn::Sub: "${Environment}-public-b"
 
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
@@ -135,11 +119,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - private-b
+            Fn::Sub: "${Environment}-private-b"
 
   SubnetPublicC:
     Type: AWS::EC2::Subnet
@@ -158,11 +138,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - public-c
+            Fn::Sub: "${Environment}-public-c"
 
   SubnetPrivateC:
     Type: AWS::EC2::Subnet
@@ -180,11 +156,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - private-c
+            Fn::Sub: "${Environment}-private-c"
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -203,11 +175,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - private-routetable-a
+            Fn::Sub: "${Environment}-private-routetable-a"
       VpcId:
         Ref: VPC
 
@@ -225,11 +193,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - private-routetable-b
+            Fn::Sub: "${Environment}-private-routetable-b"
       VpcId:
         Ref: VPC
 
@@ -247,10 +211,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              - - Ref: Environment
-                - private-routetable-c
+            Fn::Sub: "${Environment}-private-routetable-c"
       VpcId:
         Ref: VPC
 
@@ -268,11 +229,7 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - public
+            Fn::Sub: "${Environment}-public"
       VpcId:
         Ref: VPC
 
@@ -311,6 +268,16 @@ Resources:
         Ref: SubnetPublicC
 
 Outputs:
+  AvailabilityZones:
+    Description: The AvailabilityZones of the VPC
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-AvailabilityZones"
+    Value:
+      Fn::Join:
+        - ","
+        - Ref: AvailabilityZones
+
   CidrBlock:
     Description: The CidrBlock of the VPC
     Export:
@@ -367,58 +334,26 @@ Outputs:
     Value:
       Ref: RouteTablePublic
 
-  SubnetPrivateA:
+  SubnetaPrivate:
     Description: The ID of the newly created Private Subnet in zone A
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPrivateA"
+        Fn::Sub: "${AWS::StackName}-SubnetsPrivate"
     Value:
-      Ref: SubnetPrivateA
+      Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB},${SubnetPrivateC}"
 
-  SubnetPrivateB:
-    Description: The ID of the newly created Private Subnet in zone B
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPrivateB"
-    Value:
-      Ref: SubnetPrivateB
-
-  SubnetPrivateC:
-    Description: The ID of the newly created Private Subnet in zone C
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPrivateC"
-    Value:
-      Ref: SubnetPrivateC
-
-  SubnetPublicA:
+  SubnetsPublic:
     Description: The ID of the newly created Public Subnet in zone A
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPublicA"
+        Fn::Sub: "${AWS::StackName}-SubnetsPublic"
     Value:
-      Ref: SubnetPublicA
+      Fn::Sub: "${SubnetPublicA},${SubnetPublicB},${SubnetPublicC}"
 
-  SubnetPublicB:
-    Description: The ID of the newly created Public Subnet in zone B
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPublicB"
-    Value:
-      Ref: SubnetPublicB
-
-  SubnetPublicC:
-    Description: The ID of the newly created Public Subnet in zone C
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPublicC"
-    Value:
-      Ref: SubnetPublicC
-
-  VpcID:
+  VpcId:
     Description: The ID of the newly created VPC
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-VpcID"
+        Fn::Sub: "${AWS::StackName}-VpcId"
     Value:
       Ref: VPC

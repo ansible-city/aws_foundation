@@ -21,8 +21,12 @@ Resources:
           - NatEip
           - AllocationId
       SubnetId:
-        Fn::ImportValue:
-          Fn::Sub: "${Environment}-vpc-SubnetPublicA"
+        Fn::Select:
+          - 0
+          - Fn::Split:
+            - ","
+            - Fn::ImportValue:
+                Fn::Sub: "${Environment}-vpc-SubnetsPublic"
 
   NatRouteA:
     Type: AWS::EC2::Route

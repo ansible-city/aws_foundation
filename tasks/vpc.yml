@@ -17,4 +17,3 @@
       role: "vpc"
       Description: "VPC stack with network"
       Name: "{{ env }}-vpc"
-  register: vpc_data

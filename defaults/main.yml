@@ -1,13 +1,19 @@
 ---
 
 aws_foundation:
+  public_fqdn: foundation.io
+
   stacks:
     - vpc
+    - public_dns
     - nat
 
   nat:
     state: present
     availability_zones: multi
+
+  public_dns:
+    state: present
 
   vpc:
     availability_zones:
