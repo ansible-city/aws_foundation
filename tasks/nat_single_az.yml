@@ -12,4 +12,3 @@
       role: "nat"
       Description: "NAT gateway stack"
       Name: "{{ env }}-nat"
-  register: nat_data
