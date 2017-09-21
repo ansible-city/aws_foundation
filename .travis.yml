@@ -1,0 +1,22 @@
+---
+
+group: stable
+dist: trusty
+branches:
+  only:
+    - develop
+    - master
+
+language: python
+python: "2.7"
+
+before_install:
+  # Make sure everything's up to date.
+  - sudo apt-get update -qq
+
+script:
+  # Lint
+  - make lint
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/

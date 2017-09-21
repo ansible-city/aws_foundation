@@ -1,0 +1,98 @@
+---
+
+Description: NAT Elastic IPs
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  AvailabilityZonesCount:
+    Description: Number of availabilty zones to use
+    Type: Number
+    AllowedValues:
+      - 1
+      - 2
+      - 3
+
+Conditions:
+  SecondZone:
+    Fn::Or:
+      - Fn::Equals:
+        - Ref: AvailabilityZonesCount
+        - 2
+      - Fn::Equals:
+        - Ref: AvailabilityZonesCount
+        - 3
+  ThirdZone:
+    Fn::Equals:
+      - Ref: AvailabilityZonesCount
+      - 3
+
+Resources:
+  EipA:
+    Type: AWS::EC2::EIP
+
+  EipB:
+    Condition: SecondZone
+    Type: AWS::EC2::EIP
+
+  EipC:
+    Condition: ThirdZone
+    Type: AWS::EC2::EIP
+
+Outputs:
+  EipA:
+    Description: Nat EIP A
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::EipA"
+    Value:
+      Ref: EipA
+
+  EipAAllocationId:
+    Description: Nat EIP Allocation Id A
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::EipAAllocationId"
+    Value:
+      Fn::GetAtt:
+        - EipA
+        - AllocationId
+
+  EipB:
+    Condition: SecondZone
+    Description: Nat EIP B
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::EipB"
+    Value:
+      Ref: EipB
+
+  EipBAllocationId:
+    Condition: SecondZone
+    Description: Nat EIP Allocation Id B
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::EipBAllocationId"
+    Value:
+      Fn::GetAtt:
+        - EipB
+        - AllocationId
+
+  EipC:
+    Condition: ThirdZone
+    Description: Nat EIP C
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::EipC"
+    Value:
+      Ref: EipC
+
+  EipCAllocationId:
+    Condition: ThirdZone
+    Description: Nat EIP Allocation Id C
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::EipCAllocationId"
+    Value:
+      Fn::GetAtt:
+        - EipC
+        - AllocationId

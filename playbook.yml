@@ -4,4 +4,4 @@
   hosts: "{{ hosts }}"
 
   roles:
-    role: ansible-city.aws-foundation
+    - role: ansible-city.aws_foundation

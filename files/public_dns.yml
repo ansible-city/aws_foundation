@@ -26,13 +26,13 @@ Outputs:
     Description: Zone ID
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-ZoneId"
+        Fn::Sub: "${AWS::StackName}::ZoneId"
     Value:
       Ref: PublicDns
   FQDN:
     Description: Fully Qualified Domain Name
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-FQDN"
+        Fn::Sub: "${AWS::StackName}::FQDN"
     Value:
       Ref: PublicFQDN

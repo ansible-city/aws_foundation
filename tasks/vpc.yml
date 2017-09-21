@@ -2,18 +2,18 @@
 
 - name: Ensure VPC basic setup
   cloudformation:
-    stack_name: "{{ env }}-vpc"
+    stack_name: "{{ aws_foundation.environment_name }}-vpc"
     state: "{{ aws_foundation.vpc.state }}"
     template: "{{ role_path }}/files/vpc.yml"
     template_parameters:
-      AvailabilityZones: "{{ aws_foundation.vpc.availability_zones | join(', ') }}"
+      AvailabilityZonesCount: "{{ aws_foundation.vpc.availability_zones_count }}"
       CidrBlock: "{{ aws_foundation.vpc.cidr }}"
-      Environment: "{{ env }}"
+      Environment: "{{ aws_foundation.environment_name }}"
       Region: "{{ aws_foundation.vpc.region }}"
       SubnetPrivateCidrBlocks: "{{ aws_foundation.vpc.subnets_private | join(', ') }}"
       SubnetPublicCidrBlocks: "{{ aws_foundation.vpc.subnets_public | join(', ') }}"
     tags:
-      environment: "{{ env }}"
+      environment: "{{ aws_foundation.environment_name }}"
       role: "vpc"
       Description: "VPC stack with network"
-      Name: "{{ env }}-vpc"
+      Name: "{{ aws_foundation.environment_name }}-vpc"

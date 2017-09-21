@@ -1,0 +1,115 @@
+---
+
+Description: NAT setup
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  AvailabilityZonesCount:
+    Description: Number of availabilty zones to use
+    Type: Number
+    AllowedValues:
+      - 1
+      - 2
+      - 3
+
+  Environment:
+    Description: Environment name
+    Type: String
+
+Conditions:
+  SecondZone:
+    Fn::Or:
+      - Fn::Equals:
+        - Ref: AvailabilityZonesCount
+        - 2
+      - Fn::Equals:
+        - Ref: AvailabilityZonesCount
+        - 3
+  ThirdZone:
+    Fn::Equals:
+      - Ref: AvailabilityZonesCount
+      - 3
+
+Resources:
+  ##
+  # NAT for private subnet A
+  NatA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::ImportValue: !Sub "${Environment}-nat-eip::EipAAllocationId"
+      SubnetId:
+        Fn::Select:
+          - 0
+          - Fn::Split:
+              - ","
+              - Fn::ImportValue: !Sub "${Environment}-vpc::SubnetsPublic"
+
+  NatARouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatA
+      RouteTableId:
+        Fn::Select:
+          - 0
+          - Fn::Split:
+              - ","
+              - Fn::ImportValue: !Sub "${Environment}-vpc::RouteTablesPrivate"
+
+  NatB:
+    Condition: SecondZone
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-nat-eip::EipBAllocationId"
+      SubnetId:
+        Fn::Select:
+          - 1
+          - Fn::Split:
+              - ","
+              - Fn::ImportValue: !Sub "${Environment}-vpc::SubnetsPublic"
+
+  NatBRouteB:
+    Condition: SecondZone
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatB
+      RouteTableId:
+        Fn::Select:
+          - 1
+          - Fn::Split:
+              - ","
+              - Fn::ImportValue: !Sub "${Environment}-vpc::RouteTablesPrivate"
+
+  NatC:
+    Condition: ThirdZone
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::ImportValue:
+          Fn::Sub: "${Environment}-nat-eip::EipCAllocationId"
+      SubnetId:
+        Fn::Select:
+          - 2
+          - Fn::Split:
+              - ","
+              - Fn::ImportValue: !Sub "${Environment}-vpc::SubnetsPublic"
+
+  NatCRouteC:
+    Condition: ThirdZone
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatC
+      RouteTableId:
+        Fn::Select:
+          - 2
+          - Fn::Split:
+              - ","
+              - Fn::ImportValue: !Sub "${Environment}-vpc::RouteTablesPrivate"

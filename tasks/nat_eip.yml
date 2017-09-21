@@ -1,0 +1,14 @@
+---
+
+- name: Ensure NAT Elastic IPs
+  cloudformation:
+    stack_name: "{{ aws_foundation.environment_name }}-nat-eip"
+    state: "{{ aws_foundation.nat.state }}"
+    template: "{{ role_path }}/files/nat_eip.yml"
+    template_parameters:
+      AvailabilityZonesCount: "{{ aws_foundation.vpc.availability_zones_count }}"
+    tags:
+      environment: "{{ aws_foundation.environment_name }}"
+      role: "nat"
+      Description: "NAT gateway stack"
+      Name: "{{ aws_foundation.environment_name }}-nat"

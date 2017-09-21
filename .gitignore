@@ -12,6 +12,8 @@
 
 
 ## Builds
-/.make
-/meta/.galaxy_install_info
 *.retry
+/.mk
+/.venv
+/tests/roles
+/meta/.galaxy_install_info

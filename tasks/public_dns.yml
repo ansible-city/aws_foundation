@@ -2,14 +2,11 @@
 
 - name: Ensure Public DNS
   cloudformation:
-    stack_name: "{{ env }}-public-dns"
+    stack_name: "{{ aws_foundation.environment_name }}-public-dns"
     state: "{{ aws_foundation.public_dns.state }}"
     template: "{{ role_path }}/files/public_dns.yml"
     template_parameters:
-      Environment: "{{ env }}"
-      PublicFQDN: "{{ aws_foundation.public_fqdn }}"
+      Environment: "{{ aws_foundation.environment_name }}"
+      PublicFQDN: "{{ item }}"
     tags:
-      environment: "{{ env }}"
-      role: "public_dns"
-      Description: "Public DNS"
-      Name: "{{ env }}-public-dns"
+  with_items: "{{ aws_foundation.public_fqdn }}"

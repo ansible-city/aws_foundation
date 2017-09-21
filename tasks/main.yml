@@ -13,12 +13,10 @@
   include: public_dns.yml
   when: "'public_dns' in aws_foundation.stacks"
 
-- name: Single AZ Nat
-  include: nat_single_az.yml
-  when: "'nat' in aws_foundation.stacks and
-    aws_foundation.nat.availability_zones == 'single'"
+- name: Nat EIP
+  include: nat_eip.yml
+  when: "'nat' in aws_foundation.stacks"
 
-- name: Multi AZ Nat
-  include: nat_multi_az.yml
-  when: "'nat' in aws_foundation.stacks and
-    aws_foundation.nat.availability_zones == 'multi'"
+- name: Nat Gateway
+  include: nat.yml
+  when: "'nat' in aws_foundation.stacks"

@@ -1,0 +1,6 @@
+ansible==2.2.2.0
+ansible-lint
+awscli==1.11.138
+boto
+boto3==1.4.2
+aws-sudo

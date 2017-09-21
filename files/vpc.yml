@@ -4,9 +4,13 @@ Description: VPC with Subnets
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
-  AvailabilityZones:
-    Description: Comma-delimited list of availabilty zones
-    Type: CommaDelimitedList
+  AvailabilityZonesCount:
+    Description: Number of availabilty zones to use
+    Type: Number
+    AllowedValues:
+      - 1
+      - 2
+      - 3
   CidrBlock:
     Description: VPC Cidr Block
     Type: String
@@ -25,12 +29,32 @@ Parameters:
     Description: Comma-delimited list of three CIDR blocks for public subnets
     Type: CommaDelimitedList
 
+Conditions:
+  SecondZone:
+    Fn::Or:
+      - Fn::Equals:
+        - Ref: AvailabilityZonesCount
+        - 2
+      - Fn::Equals:
+        - Ref: AvailabilityZonesCount
+        - 3
+  ThirdZone:
+    Fn::Equals:
+      - Ref: AvailabilityZonesCount
+      - 3
+
 Resources:
+  ##
+  # Minimal VPC setup
+  #
+  # - VPC
+  # - Internal Route53
+  # - Internet Gateway
+  # - Outbound Route to the Internet from public subnets
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock:
-        Ref: CidrBlock
+      CidrBlock: !Ref CidrBlock
       EnableDnsSupport: true
       EnableDnsHostnames: true
 
@@ -38,125 +62,11 @@ Resources:
     Type: AWS::Route53::HostedZone
     Properties:
       HostedZoneConfig:
-        Comment:
-          Fn::Sub: "${Environment} VPC Internal DNS"
-      Name: internal
+        Comment: !Sub "${Environment} Internal DNS"
+      Name: int
       VPCs:
-        - VPCId:
-            Ref: VPC
-          VPCRegion:
-            Ref: Region
-
-  SubnetPublicA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::Select:
-          - 0
-          - Ref: AvailabilityZones
-      CidrBlock:
-        Fn::Select:
-          - 0
-          - Ref: SubnetPublicCidrBlocks
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-public-a"
-
-  SubnetPrivateA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::Select:
-          - 0
-          - Ref: AvailabilityZones
-      CidrBlock:
-        Fn::Select:
-          - 0
-          - Ref: SubnetPrivateCidrBlocks
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-private-a"
-
-  SubnetPublicB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::Select:
-          - 1
-          - Ref: AvailabilityZones
-      CidrBlock:
-        Fn::Select:
-          - 1
-          - Ref: SubnetPublicCidrBlocks
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-public-b"
-
-  SubnetPrivateB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::Select:
-          - 1
-          - Ref: AvailabilityZones
-      CidrBlock:
-        Fn::Select:
-          - 1
-          - Ref: SubnetPrivateCidrBlocks
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-private-b"
-
-  SubnetPublicC:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::Select:
-          - 2
-          - Ref: AvailabilityZones
-      CidrBlock:
-        Fn::Select:
-          - 2
-          - Ref: SubnetPublicCidrBlocks
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-public-c"
-
-  SubnetPrivateC:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::Select:
-          - 2
-          - Ref: AvailabilityZones
-      CidrBlock:
-        Fn::Select:
-          - 2
-          - Ref: SubnetPrivateCidrBlocks
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-private-c"
+        - VPCId: !Ref VPC
+          VPCRegion: !Ref Region
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -164,125 +74,228 @@ Resources:
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId:
-        Ref: VPC
-      InternetGatewayId:
-        Ref: InternetGateway
-
-  RouteTablePrivateA:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-private-routetable-a"
-      VpcId:
-        Ref: VPC
-
-  SubnetPrivateARouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId:
-        Ref: SubnetPrivateA
-      RouteTableId:
-        Ref: RouteTablePrivateA
-
-  RouteTablePrivateB:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-private-routetable-b"
-      VpcId:
-        Ref: VPC
-
-  SubnetPrivateBRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId:
-        Ref: SubnetPrivateB
-      RouteTableId:
-        Ref: RouteTablePrivateB
-
-  RouteTablePrivateC:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-private-routetable-c"
-      VpcId:
-        Ref: VPC
-
-  SubnetPrivateCRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId:
-        Ref: SubnetPrivateC
-      RouteTableId:
-        Ref: RouteTablePrivateC
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
 
   RouteTablePublic:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
         - Key: Name
-          Value:
-            Fn::Sub: "${Environment}-public"
-      VpcId:
-        Ref: VPC
+          Value: !Sub "${Environment}-public"
+      VpcId: !Ref VPC
 
   InternetRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
     Properties:
+      RouteTableId: !Ref RouteTablePublic
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId:
-        Ref: InternetGateway
-      RouteTableId:
-        Ref: RouteTablePublic
+      GatewayId: !Ref InternetGateway
+
+  # RDS Subnets requires minimum 2 VPC subnets, each in different AZ, hence we
+  # are alwyas creacting minimum 2 private AZ, but exporting according to
+  # AvailabilityZonesCount parameter.
+  # The `*::SubnetsDb` output should be used for custom RDS stacks.
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 0
+          - Ref: SubnetPrivateCidrBlocks
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-private-a"
+
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 1
+          - Ref: SubnetPrivateCidrBlocks
+      Tags:
+      - Key: Name
+        Value: !Sub "${Environment}-private-b"
+
+  ## First AZ setup
+  # Please note that private subnet (SubnetPrivateA) was already created above.
+  # as part of the minimal VPC setup
+  #
+  # - Public subnet A
+  # - Private route table for private subnet A
+  # - Public and private subnet association to routing tables
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 0
+          - Ref: SubnetPublicCidrBlocks
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-public-a"
 
   SubnetPublicARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId:
-        Ref: RouteTablePublic
-      SubnetId:
-        Ref: SubnetPublicA
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId: !Ref RouteTablePublic
+
+  RouteTablePrivateA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-private-a"
+      VpcId: !Ref VPC
+
+  SubnetPrivateARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref RouteTablePrivateA
+
+  ## Second AZ setup
+  # Please note that private subnet (SubnetPrivateB) was already created above
+  # as part of the minimal VPC setup
+  #
+  # - Public subnet B
+  # - Route table for private subnet B
+  # - Public and private subnet association to routing tables
+  SubnetPublicB:
+    Condition: SecondZone
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 1
+          - Ref: SubnetPublicCidrBlocks
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-public-b"
 
   SubnetPublicBRouteTableAssociation:
+    Condition: SecondZone
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId:
-        Ref: RouteTablePublic
-      SubnetId:
-        Ref: SubnetPublicB
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId: !Ref RouteTablePublic
+
+  RouteTablePrivateB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-private-b"
+      VpcId: !Ref VPC
+
+  SubnetPrivateBRouteTableAssociation:
+    Condition: SecondZone
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref RouteTablePrivateB
+
+  ## Third AZ setup
+  #
+  # - Public subnet C
+  # - Private subnet C
+  # - Route table for private subnet C
+  # - Public and private subnet association to routing tables
+  SubnetPublicC:
+    Condition: ThirdZone
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 2
+          - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 2
+          - Ref: SubnetPublicCidrBlocks
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-public-c"
 
   SubnetPublicCRouteTableAssociation:
+    Condition: ThirdZone
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId:
-        Ref: RouteTablePublic
-      SubnetId:
-        Ref: SubnetPublicC
+      SubnetId: !Ref SubnetPublicC
+      RouteTableId: !Ref RouteTablePublic
+
+  SubnetPrivateC:
+    Condition: ThirdZone
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 2
+          - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 2
+          - Ref: SubnetPrivateCidrBlocks
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-private-c"
+
+  RouteTablePrivateC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-private-c"
+      VpcId: !Ref VPC
+
+  SubnetPrivateCRouteTableAssociation:
+    Condition: ThirdZone
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateC
+      RouteTableId: !Ref RouteTablePrivateC
 
 Outputs:
-  AvailabilityZones:
-    Description: The AvailabilityZones of the VPC
+  AvailabilityZonesCount:
+    Description: Availability zones count
     Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-AvailabilityZones"
-    Value:
-      Fn::Join:
-        - ","
-        - Ref: AvailabilityZones
+      Name: !Sub "${AWS::StackName}::AvailabilityZonesCount"
+    Value: !Ref AvailabilityZonesCount
 
   CidrBlock:
     Description: The CidrBlock of the VPC
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-CidrBlock"
+        Fn::Sub: "${AWS::StackName}::CidrBlock"
     Value:
       Ref: CidrBlock
 
@@ -290,7 +303,7 @@ Outputs:
     Description: The ID of the private Route53
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-InternalDns"
+        Fn::Sub: "${AWS::StackName}::InternalDns"
     Value:
       Ref: InternalDns
 
@@ -298,62 +311,78 @@ Outputs:
     Description: The ID of the newly created Internet Gateway
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-InternetGateway"
+        Fn::Sub: "${AWS::StackName}::InternetGateway"
     Value:
       Ref: InternetGateway
 
-  RouteTablePrivateA:
-    Description: The ID of the Private RT A
+  RouteTablesPrivate:
+    Description: The ID of the Private RT
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-RouteTablePrivateA"
+        Fn::Sub: "${AWS::StackName}::RouteTablesPrivate"
     Value:
-      Ref: RouteTablePrivateA
-
-  RouteTablePrivateB:
-    Description: The ID of the Private RT B
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-RouteTablePrivateB"
-    Value:
-      Ref: RouteTablePrivateB
-
-  RouteTablePrivateC:
-    Description: The ID of the Private RT C
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-RouteTablePrivateC"
-    Value:
-      Ref: RouteTablePrivateC
+      Fn::If:
+        - ThirdZone
+        - Fn::Sub: "${RouteTablePrivateA},${RouteTablePrivateB},${RouteTablePrivateC}"
+        - Fn::If:
+          - SecondZone
+          - Fn::Sub: "${RouteTablePrivateA},${RouteTablePrivateB}"
+          - Fn::Sub: "${RouteTablePrivateA}"
 
   RouteTablePublic:
     Description: The ID of the Public RT
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-RouteTablePublic"
+        Fn::Sub: "${AWS::StackName}::RouteTablePublic"
     Value:
       Ref: RouteTablePublic
 
-  SubnetaPrivate:
+  SubnetsPrivate:
     Description: The ID of the newly created Private Subnet in zone A
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-SubnetsPrivate"
+        Fn::Sub: "${AWS::StackName}::SubnetsPrivate"
     Value:
-      Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB},${SubnetPrivateC}"
+      Fn::If:
+        - ThirdZone
+        - Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB},${SubnetPrivateC}"
+        - Fn::If:
+          - SecondZone
+          - Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB}"
+          - Fn::Sub: "${SubnetPrivateA}"
 
   SubnetsPublic:
     Description: The ID of the newly created Public Subnet in zone A
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-SubnetsPublic"
+        Fn::Sub: "${AWS::StackName}::SubnetsPublic"
     Value:
-      Fn::Sub: "${SubnetPublicA},${SubnetPublicB},${SubnetPublicC}"
+      Fn::If:
+        - ThirdZone
+        - Fn::Sub: "${SubnetPublicA},${SubnetPublicB},${SubnetPublicC}"
+        - Fn::If:
+          - SecondZone
+          - Fn::Sub: "${SubnetPublicA},${SubnetPublicB}"
+          - Fn::Sub: "${SubnetPublicA}"
+
+  SubnetsDb:
+    Description: The ID of the newly created Public Subnet in zone A
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}::SubnetsDb"
+    Value:
+      Fn::If:
+        - ThirdZone
+        - Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB},${SubnetPrivateC}"
+        - Fn::If:
+          - SecondZone
+          - Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB}"
+          - Fn::Sub: "${SubnetPrivateA},${SubnetPrivateB}"
 
   VpcId:
     Description: The ID of the newly created VPC
     Export:
       Name:
-        Fn::Sub: "${AWS::StackName}-VpcId"
+        Fn::Sub: "${AWS::StackName}::VpcId"
     Value:
       Ref: VPC

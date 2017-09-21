@@ -1,7 +1,10 @@
 ---
 
 aws_foundation:
-  public_fqdn: foundation.io
+  environment_name: tst
+
+  public_fqdn:
+    - foundation.io
 
   stacks:
     - vpc
@@ -10,24 +13,18 @@ aws_foundation:
 
   nat:
     state: present
-    availability_zones: multi
 
   public_dns:
     state: present
 
   vpc:
-    availability_zones:
-      - eu-west-1a
-      - eu-west-1b
-      - eu-west-1c
     cidr: 10.1.0.0/16
     region: eu-west-1
     state: present
+    availability_zones_count: 2
     subnets_private:
       - 10.1.11.0/24
       - 10.1.12.0/24
-      - 10.1.13.0/24
     subnets_public:
       - 10.1.1.0/24
       - 10.1.2.0/24
-      - 10.1.3.0/24
