@@ -15,8 +15,12 @@
 
 - name: Nat EIP
   include: nat_eip.yml
-  when: "'nat' in aws_foundation.stacks"
+  when:
+    - "'nat' in aws_foundation.stacks"
+    - aws_foundation.vpc.with_internet_gateway
 
 - name: Nat Gateway
   include: nat.yml
-  when: "'nat' in aws_foundation.stacks"
+  when:
+    - "'nat' in aws_foundation.stacks"
+    - aws_foundation.vpc.with_internet_gateway

@@ -8,5 +8,8 @@
     template_parameters:
       Environment: "{{ aws_foundation.environment_name }}"
       PublicFQDN: "{{ item }}"
-    tags:
+    tags: "{{ aws_foundation.stack_tags | combine({
+      'Description': 'Public DNS',
+      'Name': aws_foundation.environment_name+'-public-dns'
+    }) }}"
   with_items: "{{ aws_foundation.public_fqdn }}"

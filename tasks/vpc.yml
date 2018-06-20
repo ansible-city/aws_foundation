@@ -12,8 +12,8 @@
       Region: "{{ aws_foundation.vpc.region }}"
       SubnetPrivateCidrBlocks: "{{ aws_foundation.vpc.subnets_private | join(', ') }}"
       SubnetPublicCidrBlocks: "{{ aws_foundation.vpc.subnets_public | join(', ') }}"
-    tags:
-      environment: "{{ aws_foundation.environment_name }}"
-      role: "vpc"
-      Description: "VPC stack with network"
-      Name: "{{ aws_foundation.environment_name }}-vpc"
+      WithInternetGateway: "{{ (aws_foundation.vpc.with_internet_gateway and 'yes') or 'no' }}"
+    tags: "{{ aws_foundation.stack_tags | combine({
+      'Description': 'VPC stack with network',
+      'Name': aws_foundation.environment_name+'-vpc'
+    }) }}"

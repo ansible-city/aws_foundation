@@ -3,6 +3,8 @@
 aws_foundation:
   environment_name: tst
 
+  stack_tags: {}
+
   public_fqdn:
     - foundation.io
 
@@ -18,6 +20,7 @@ aws_foundation:
     state: present
 
   vpc:
+    with_internet_gateway: yes
     cidr: 10.1.0.0/16
     region: eu-west-1
     state: present

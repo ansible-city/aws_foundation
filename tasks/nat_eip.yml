@@ -7,8 +7,7 @@
     template: "{{ role_path }}/files/nat_eip.yml"
     template_parameters:
       AvailabilityZonesCount: "{{ aws_foundation.vpc.availability_zones_count }}"
-    tags:
-      environment: "{{ aws_foundation.environment_name }}"
-      role: "nat"
-      Description: "NAT gateway stack"
-      Name: "{{ aws_foundation.environment_name }}-nat"
+    tags: "{{ aws_foundation.stack_tags | combine({
+      'Description': 'NAT gateway Elastic IPs',
+      'Name': aws_foundation.environment_name+'-nat-eip'
+    }) }}"

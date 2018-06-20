@@ -28,6 +28,10 @@ Parameters:
   SubnetPublicCidrBlocks:
     Description: Comma-delimited list of three CIDR blocks for public subnets
     Type: CommaDelimitedList
+  WithInternetGateway:
+    Description: Choose if you need InternetGateway attached to your VPC
+    Type: String
+    Default: yes
 
 Conditions:
   SecondZone:
@@ -38,10 +42,16 @@ Conditions:
       - Fn::Equals:
         - Ref: AvailabilityZonesCount
         - 3
+
   ThirdZone:
     Fn::Equals:
       - Ref: AvailabilityZonesCount
       - 3
+
+  CreateInternetGateway:
+    Fn::Equals:
+      - Ref: WithInternetGateway
+      - "yes"
 
 Resources:
   ##
@@ -69,9 +79,11 @@ Resources:
           VPCRegion: !Ref Region
 
   InternetGateway:
+    Condition: CreateInternetGateway
     Type: AWS::EC2::InternetGateway
 
   AttachGateway:
+    Condition: CreateInternetGateway
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref VPC
@@ -86,6 +98,7 @@ Resources:
       VpcId: !Ref VPC
 
   InternetRoute:
+    Condition: CreateInternetGateway
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
     Properties:
@@ -308,6 +321,7 @@ Outputs:
       Ref: InternalDns
 
   InternetGateway:
+    Condition: CreateInternetGateway
     Description: The ID of the newly created Internet Gateway
     Export:
       Name:

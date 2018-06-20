@@ -8,8 +8,7 @@
     template_parameters:
       AvailabilityZonesCount: "{{ aws_foundation.vpc.availability_zones_count }}"
       Environment: "{{ aws_foundation.environment_name }}"
-    tags:
-      environment: "{{ aws_foundation.environment_name }}"
-      role: "nat"
-      Description: "NAT gateway stack"
-      Name: "{{ aws_foundation.environment_name }}-nat"
+    tags: "{{ aws_foundation.stack_tags | combine({
+      'Description': 'NAT gateway stack',
+      'Name': aws_foundation.environment_name+'-nat'
+    }) }}"
